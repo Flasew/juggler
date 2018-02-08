@@ -7,7 +7,7 @@ Installation instructions
 ------------------------
 *These instructions work for a Debian 9 system. The patch will be applied to Linux kernel 4.1.8.*
 
-To use juggler you need to compile you own patched kernel.
+To use juggler you need to compile your own patched kernel.
 
 To start let's create a working directory.
 ```bash
@@ -39,7 +39,7 @@ tar -xf linux-4.1.8.tar.xz
 
 Clone the juggler repository:
 ```bash
-git clone https://github.com/gengyl08/juggler.git
+git clone https://github.com/hugombarreto/juggler.git
 ```
 
 Apply the patch:
