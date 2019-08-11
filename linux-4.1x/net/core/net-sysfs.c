@@ -352,31 +352,31 @@ static int change_gro_inseq_timeout(struct net_device *dev, unsigned long val)
 	dev->gro_inseq_timeout = val;
 	return 0;
 }
->
+
 static ssize_t gro_inseq_timeout_store(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf, size_t len)
 {
 	if (!capable(CAP_NET_ADMIN))
 		return -EPERM;
->
+
 	return netdev_store(dev, attr, buf, len, change_gro_inseq_timeout);
 }
 NETDEVICE_SHOW_RW(gro_inseq_timeout, fmt_ulong);
->
+
 static int change_gro_ofo_timeout(struct net_device *dev, unsigned long val)
 {
 	dev->gro_ofo_timeout = val;
 	return 0;
 }
->
+
 static ssize_t gro_ofo_timeout_store(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf, size_t len)
 {
 	if (!capable(CAP_NET_ADMIN))
 		return -EPERM;
->
+
 	return netdev_store(dev, attr, buf, len, change_gro_ofo_timeout);
 }
 NETDEVICE_SHOW_RW(gro_ofo_timeout, fmt_ulong);
