@@ -122,6 +122,7 @@
 #include <linux/if_arp.h>
 #include <linux/if_vlan.h>
 #include <linux/ip.h>
+#include <net/tcp.h>
 #include <net/ip.h>
 #include <net/mpls.h>
 #include <linux/ipv6.h>
@@ -5292,7 +5293,7 @@ static void flush_all_backlogs(void)
 	put_online_cpus();
 }
 
-static int napi_gro_complete(struct sk_buff *skb)
+int napi_gro_complete(struct sk_buff *skb)
 {
 	struct packet_offload *ptype;
 	__be16 type = skb->protocol;
@@ -5333,8 +5334,8 @@ static void __napi_gro_flush_chain(struct napi_struct *napi, u32 index,
 	struct sk_buff *skb, *p;
 
 	list_for_each_entry_safe_reverse(skb, p, head, list) {
-		if (flush_old && NAPI_GRO_CB(skb)->age == jiffies)
-			return;
+		// if (flush_old && NAPI_GRO_CB(skb)->age == jiffies)
+		// 	return;
 		list_del(&skb->list);
 		skb->next = NULL;
 		napi_gro_complete(skb);
@@ -5694,7 +5695,7 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 // normal:
 // 	ret = GRO_NORMAL;
 // 	goto pull;
-		struct sk_buff **pp = NULL;
+		struct sk_buff *pp = NULL;
 		struct packet_offload *ptype;
 		__be16 type = skb->protocol;
 		struct list_head *head = &offload_base;
@@ -5709,7 +5710,7 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 		if (!(skb->dev->features & NETIF_F_GRO))
 				goto normal;
 
-		if (skb_is_gso(skb) || skb_has_frag_list(skb) || skb->csum_bad)
+		if (skb_is_gso(skb) || skb_has_frag_list(skb) || !skb->csum_valid)
 				goto normal;
 
 		gro_list_prepare(napi, skb);
@@ -5725,9 +5726,17 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 				NAPI_GRO_CB(skb)->same_flow = 0;
 				NAPI_GRO_CB(skb)->flush = 0;
 				NAPI_GRO_CB(skb)->free = 0;
-				NAPI_GRO_CB(skb)->udp_mark = 0;
+				// NAPI_GRO_CB(skb)->udp_mark = 0;
 				NAPI_GRO_CB(skb)->gro_remcsum_start = 0;
 				NAPI_GRO_CB(skb)->is_tcp = false;
+				// 		NAPI_GRO_CB(skb)->same_flow = 0;
+// 		NAPI_GRO_CB(skb)->flush = skb_is_gso(skb) || skb_has_frag_list(skb);
+// 		NAPI_GRO_CB(skb)->free = 0;
+				NAPI_GRO_CB(skb)->encap_mark = 0;
+				NAPI_GRO_CB(skb)->recursion_counter = 0;
+				NAPI_GRO_CB(skb)->is_fou = 0;
+				NAPI_GRO_CB(skb)->is_atomic = 1;
+// 		NAPI_GRO_CB(skb)->gro_remcsum_start = 0;
 
 				/* Setup for GRO checksum validation */
 				switch (skb->ip_summed) {
@@ -5756,14 +5765,20 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 		same_flow = NAPI_GRO_CB(skb)->same_flow;
 		ret = NAPI_GRO_CB(skb)->free ? GRO_MERGED_FREE : GRO_MERGED;
 
-		if (pp) {
-				struct sk_buff *nskb = *pp;
+		// if (pp) {
+		// 		struct sk_buff *nskb = *pp;
 
-				*pp = nskb->next;
-				nskb->next = NULL;
-				printk(KERN_NOTICE "dev_gro_receive qlen %u skb %u\n", NAPI_GRO_CB(nskb)->out_of_order_queue->qlen, NAPI_GRO_CB(nskb)->out_of_order_queue->skb_num);
-				dev_gro_complete(napi, nskb, false);
-				napi->gro_hash[hash].count--;
+		// 		*pp = nskb->next;
+		// 		nskb->next = NULL;
+		// 		printk(KERN_NOTICE "dev_gro_receive qlen %u skb %u\n", NAPI_GRO_CB(nskb)->out_of_order_queue->qlen, NAPI_GRO_CB(nskb)->out_of_order_queue->skb_num);
+		// 		dev_gro_complete(napi, nskb, false);
+		// 		napi->gro_hash[hash].count--;
+		// }
+		if (pp) {
+			list_del(&pp->list);
+			pp->next = NULL;
+			napi_gro_complete(pp);
+			napi->gro_hash[hash].count--;
 		}
 
 		if (same_flow) {
@@ -6318,23 +6333,23 @@ bool napi_complete_done(struct napi_struct *n, int work_done)
 				 NAPIF_STATE_IN_BUSY_POLL)))
 		return false;
 
-	if (unlikely(napi_disable_pending(n))) {
-		printk(KERN_INFO "napi_complete_done 1\n");
-		napi_gro_flush(n, false);
-	}
+	// if (unlikely(napi_disable_pending(n))) {
+	// 	printk(KERN_INFO "napi_complete_done 1\n");
+	// 	napi_gro_flush(n, false);
+	// }
 
-	if (n->dev->gro_flush_timeout) {
-		printk(KERN_INFO "napi_complete_done 2\n");
-		napi_gro_flush(n, true);
-		if (n->gro_list) {
-			printk(KERN_INFO "start timer\n");
-			hrtimer_start(&n->timer, ns_to_ktime(n->dev->gro_flush_timeout),
-				HRTIMER_MODE_REL_PINNED);
-		}
-	} else {
-		printk(KERN_INFO "napi_complete_done 3\n");
-		napi_gro_flush(n, false);
-	}
+	// if (n->dev->gro_flush_timeout) {
+	// 	printk(KERN_INFO "napi_complete_done 2\n");
+	// 	napi_gro_flush(n, true);
+	// 	if (n->bitmask) {
+	// 		printk(KERN_INFO "start timer\n");
+	// 		hrtimer_start(&n->timer, ns_to_ktime(n->dev->gro_flush_timeout),
+	// 			HRTIMER_MODE_REL_PINNED);
+	// 	}
+	// } else {
+	// 	printk(KERN_INFO "napi_complete_done 3\n");
+	// 	napi_gro_flush(n, false);
+	// }
 
 	if (n->gro_bitmask) {
 		unsigned long timeout = 0;
