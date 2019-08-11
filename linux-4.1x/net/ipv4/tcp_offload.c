@@ -355,7 +355,7 @@ struct sk_buff *tcp_gro_receive(struct list_head *head, struct sk_buff *skb)
 	NAPI_GRO_CB(skb)->len = len;
 	NAPI_GRO_CB(skb)->tcp_hash = *(__u32 *)&th->source;
 
-	for (; (p = **hhead); *hhead = &p->next) {
+	for (; (p = *hhead); hhead = &p->next) {
 		if (!NAPI_GRO_CB(p)->same_flow)
 			continue;
 
