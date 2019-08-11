@@ -5370,7 +5370,7 @@ static struct sk_buff* dev_gro_complete(struct napi_struct *napi, struct sk_buff
 		}
 
 		age = timestamp - ofo_queue->timestamp;
-		printk(KERN_INFO "queue age: %llu\n", age);
+		// printk(KERN_INFO "queue age: %llu\n", age);
 
 		has_inseq = !before(ofo_queue->seq_next, NAPI_GRO_CB(p)->seq);
 
@@ -5405,7 +5405,7 @@ static struct sk_buff* dev_gro_complete(struct napi_struct *napi, struct sk_buff
 					napi_gro_complete(p);
 					flushed = true;
 					p = p2;
-					printk(KERN_NOTICE "flush in sequence skb\n");
+					// printk(KERN_NOTICE "flush in sequence skb\n");
 			}
 		}
 
@@ -5428,7 +5428,7 @@ static struct sk_buff* dev_gro_complete(struct napi_struct *napi, struct sk_buff
 				ofo_queue->next = p;
 		}
 		
-		printk(KERN_NOTICE "dev_gro_complete qlen %u skb %u\n", qlen, skb_num);
+		// printk(KERN_NOTICE "dev_gro_complete qlen %u skb %u\n", qlen, skb_num);
 
 		//printk(KERN_ERR "seq_next %u\n", ofo_queue->seq_next);
 
@@ -5868,7 +5868,7 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 							napi->out_of_order_queue_last = ofo_queue;
 						}
 						napi->out_of_order_queue_list = ofo_queue;
-						printk(KERN_NOTICE "flush point 10: %u %u\n", NAPI_GRO_CB(skb)->seq, ofo_queue->seq_next);
+						// printk(KERN_NOTICE "flush point 10: %u %u\n", NAPI_GRO_CB(skb)->seq, ofo_queue->seq_next);
 						goto normal;
 				}
 
@@ -5933,7 +5933,7 @@ normal:
 				ofo_queue->flushed = true;
 			}
 		}
-		printk(KERN_NOTICE "normal qlen %u skb %u\n", NAPI_GRO_CB(skb)->len, 1);
+		// printk(KERN_NOTICE "normal qlen %u skb %u\n", NAPI_GRO_CB(skb)->len, 1);
 		ret = GRO_NORMAL;
 		goto pull;
 }

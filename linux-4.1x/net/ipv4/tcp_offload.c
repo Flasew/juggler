@@ -371,7 +371,7 @@ struct sk_buff *tcp_gro_receive(struct list_head *head, struct sk_buff *skb)
 		goto found;
 	}
 
-	printk(KERN_INFO "queue not found\n");
+	// printk(KERN_INFO "queue not found\n");
 	flush = len < 1;
 	flush |= (__force int)(flags & (TCP_FLAG_URG |
 					TCP_FLAG_RST | TCP_FLAG_SYN |
@@ -387,14 +387,14 @@ found:
 	//printk(KERN_NOTICE "flush-2 %u\n", NAPI_GRO_CB(p)->flush);
 	//printk(KERN_NOTICE "flush-3 %u\n", NAPI_GRO_CB(p)->flush_id);
 	flush = NAPI_GRO_CB(p)->flush;
-	if (flush)
-	printk(KERN_NOTICE "flush0 %u\n", flush);
+	// if (flush)
+	// printk(KERN_NOTICE "flush0 %u\n", flush);
 	flush |= (__force int)(flags & (TCP_FLAG_RST | TCP_FLAG_SYN | TCP_FLAG_FIN | TCP_FLAG_URG));
-	if (flush)
-	printk(KERN_NOTICE "flush1 %u\n", flush);
+	// if (flush)
+	// printk(KERN_NOTICE "flush1 %u\n", flush);
 	flush |= off < skb_headlen(skb);
-	if (flush)
-	printk(KERN_NOTICE "flush2 offset %u headlen %u\n", off, skb_headlen(skb));
+	// if (flush)
+	// printk(KERN_NOTICE "flush2 offset %u headlen %u\n", off, skb_headlen(skb));
 	//flush |= (__force int)(th->ack_seq ^ th2->ack_seq);
 	//if (flush)
 	//printk(KERN_NOTICE "flush3 %u\n", flush);
@@ -425,7 +425,7 @@ found:
 	//printk(KERN_NOTICE "%u\n", ofo_queue->qlen);
 
 	if (flush) {
-		printk(KERN_NOTICE "flush point 1\n");
+		// printk(KERN_NOTICE "flush point 1\n");
 		NAPI_GRO_CB(skb)->flush = 1;
 		return *hhead;
 	}
@@ -433,7 +433,7 @@ found:
 
 	if (before(seq, ofo_queue->seq_next)) {
 		if (ofo_queue->flushed) {
-			printk(KERN_NOTICE "flush point 2\n");
+			// printk(KERN_NOTICE "flush point 2\n");
 			NAPI_GRO_CB(skb)->flush = 1;
 			return NULL;
 		} else {
@@ -471,7 +471,7 @@ found:
 					*hhead = p2;
 					p2->next = p_next;
 					skb_gro_flush(ofo_queue, p3);
-					printk(KERN_INFO "flush point 100\n");
+					// printk(KERN_INFO "flush point 100\n");
 				}
 				NAPI_GRO_CB(skb)->flush = 1;
 				return NULL;
@@ -501,7 +501,7 @@ found:
 
 			if ((err = skb_gro_merge(skb, p2))) {
 				if (err == SKB_MERGE_INVAL) {
-					printk(KERN_NOTICE "flush point 140\n");
+					// printk(KERN_NOTICE "flush point 140\n");
 					NAPI_GRO_CB(skb)->flush = 1;
 					return *hhead;
 				} else if (in_seq != seq) {
@@ -525,22 +525,22 @@ found:
 					return NULL;
 
 				} else if (err == SKB_MERGE_2BIG || tcp_hdr(p2)->psh || NAPI_GRO_CB(p2)->gso_end) {
-					printk(KERN_NOTICE "flush point 3\n");
+					// printk(KERN_NOTICE "flush point 3\n");
 					p3 = NAPI_GRO_CB(p2)->next;
 					if (p3 != NULL) {
-						printk(KERN_NOTICE "flush point 31\n");
+						// printk(KERN_NOTICE "flush point 31\n");
 						*hhead = p3;
 						p3->next = p_next;
 						skb_gro_flush(ofo_queue, p2);
 						NAPI_GRO_CB(skb)->flush = 1;
 						return NULL;
 					} else {
-						printk(KERN_NOTICE "flush point 32\n");
+						// printk(KERN_NOTICE "flush point 32\n");
 						NAPI_GRO_CB(skb)->flush = 1;
 						return *hhead;
 					}
 				} else {
-					printk(KERN_NOTICE "flush point 30\n");
+					// printk(KERN_NOTICE "flush point 30\n");
 					p3 = NAPI_GRO_CB(p2)->prev;
 					if (p3 != NULL) {
 						*hhead = p2;
@@ -588,7 +588,7 @@ found:
 					p3 = NAPI_GRO_CB(p2)->next;
 					if (p3 != NULL) {
 						if (in_seq == seq2) {
-							printk(KERN_NOTICE "flush point 40\n");
+							// printk(KERN_NOTICE "flush point 40\n");
 							*hhead = p3;
 							p3->next = p_next;
 							skb_gro_flush(ofo_queue, p2);
@@ -597,7 +597,7 @@ found:
 						continue;
 					} else {
 						if (in_seq == seq2 && th->psh) {
-							printk(KERN_NOTICE "flush point 110\n");
+							// printk(KERN_NOTICE "flush point 110\n");
 							NAPI_GRO_CB(skb)->flush = 1;
 							return *hhead;
 						}
@@ -615,7 +615,7 @@ found:
 						NAPI_GRO_CB(skb)->same_flow = 1;
 
 						if (in_seq == seq2) {
-							printk(KERN_NOTICE "flush point 41\n");
+							// printk(KERN_NOTICE "flush point 41\n");
 							*hhead = skb;
 							skb->next = p_next;
 							skb_gro_flush(ofo_queue, p2);
@@ -625,7 +625,7 @@ found:
 					}
 
 				} else {
-					printk(KERN_NOTICE "flush point 4\n");
+					// printk(KERN_NOTICE "flush point 4\n");
 					NAPI_GRO_CB(skb)->flush = 1;
 					return *hhead;
 				}
@@ -636,10 +636,10 @@ found:
 			p3 = NAPI_GRO_CB(p2)->next;
 			if (in_seq == seq2 && th2->psh) {
 				if (p3 == NULL) {
-					printk(KERN_NOTICE "flush point 120\n");
+					// printk(KERN_NOTICE "flush point 120\n");
 					return *hhead;
 				} else {
-					printk(KERN_NOTICE "flush point 101\n");
+					// printk(KERN_NOTICE "flush point 101\n");
 					*hhead = p3;
 					p3->next = p_next;
 					skb_gro_flush(ofo_queue, p2);
@@ -655,7 +655,7 @@ found:
 					if ((err = skb_gro_merge(p2, p3))) {
 						if (err != SKB_MERGE_INVAL) {
 							if (in_seq == seq2) {
-								printk(KERN_NOTICE "flush point 50\n");
+								// printk(KERN_NOTICE "flush point 50\n");
 								*hhead = p3;
 								p3->next = p_next;
 								skb_gro_flush(ofo_queue, p2);
@@ -663,7 +663,7 @@ found:
 							return NULL;
 						} else {
 							//printk(KERN_NOTICE "merge fail\n");
-							printk(KERN_NOTICE "flush point 5\n");
+							// printk(KERN_NOTICE "flush point 5\n");
 							return *hhead;
 						}
 					}
@@ -685,10 +685,10 @@ found:
 					p3 = NAPI_GRO_CB(p2)->next;
 					if (in_seq == seq2 && th2->psh) {
 						if (p3 == NULL) {
-							printk(KERN_NOTICE "flush point 130\n");
+							// printk(KERN_NOTICE "flush point 130\n");
 							return *hhead;
 						} else {
-							printk(KERN_NOTICE "flush point 102\n");
+							// printk(KERN_NOTICE "flush point 102\n");
 							*hhead = p3;
 							p3->next = p_next;
 							skb_gro_flush(ofo_queue, p2);
@@ -697,7 +697,7 @@ found:
 					}
 
 				} else if (after(seq_next, NAPI_GRO_CB(p3)->seq)) {
-					printk(KERN_NOTICE "flush point 7\n");
+					// printk(KERN_NOTICE "flush point 7\n");
 					return *hhead;
 				}
 
@@ -729,7 +729,7 @@ found:
 
 		} else {
 			//printk(KERN_NOTICE "enqueue4\n");
-			printk(KERN_NOTICE "flush point 8\n");
+			// printk(KERN_NOTICE "flush point 8\n");
 			NAPI_GRO_CB(skb)->flush = 1;
 			return *hhead;
 		}
