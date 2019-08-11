@@ -2274,6 +2274,7 @@ struct napi_gro_cb {
 
 	/* Used in foo-over-udp, set in udp[46]_gro_receive */
 	u8	is_ipv6:1;
+	u8	gso_end:1;
 
 	/* Used in GRE, set in fou/gue_gro_receive */
 	u8	is_fou:1;
