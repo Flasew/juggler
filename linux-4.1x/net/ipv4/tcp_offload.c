@@ -289,7 +289,7 @@ struct sk_buff *tcp_gro_receive(struct list_head *head, struct sk_buff *skb)
 
   struct sk_buff *pp = NULL;
 	struct sk_buff *p, *p2, *p3, *p4, *p_next;
-	struct sk_buff **hhead = &(container_of(head, struct sk_buff, list)->prev->next);
+	struct sk_buff **hhead = &(container_of(head, struct sk_buff, list));
 	struct tcphdr *th;
 	struct tcphdr *th2;
 	__u32 seq;
